@@ -1,0 +1,11 @@
+
+syntax: regexp
+^src/ExploreTheStacks\.egg-info$
+syntax: regexp
+^\.project$
+syntax: regexp
+^\.pydevproject$
+syntax: regexp
+^\.settings$
+syntax: regexp
+^development\.ini$

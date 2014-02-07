@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="layout.html"/>
+  <head>
+    <title>Explore the Stacks</title>
+  </head>
+  <body>
+    <header>
+      <h1>Explore the Stacks</h1>
+    </header>
+    <article>
+      <ol class="shelves">
+        <li py:for="shelf in shelves" class="type-${'result' if shelf.id in matches else 'other'}">
+          <a href="${r.route_url('shelf', sid=shelf.id, _query=r.params)}" title="${shelf.start.title} - ${shelf.end.title}">
+            <span class="shelfmarks">${shelf.start.title} - ${shelf.end.title}</span>
+            <span class="keywords">${shelf.keywords}</span>
+          </a>
+        </li>
+      </ol>
+    </article>
+  </body>
+</html>

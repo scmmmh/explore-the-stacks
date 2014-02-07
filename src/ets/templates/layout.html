@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="True">
+  <head py:match="head">
+    <title>Explore the Stacks</title>
+    <link rel="stylesheet" href="${r.static_url('ets:static/css/jquery-ui-1.10.3.custom.min.css')}"/>
+    <link rel="stylesheet" href="${r.static_url('ets:static/css/application.css')}"/>
+    <script type="text/javascript" src="${r.static_url('ets:static/js/jquery-2.0.3.min.js')}"></script>
+    <script type="text/javascript" src="${r.static_url('ets:static/js/jquery-ui-1.10.3.custom.min.js')}"></script>
+    <script type="text/javascript" src="${r.static_url('ets:static/js/application.js')}"></script>
+    ${select('script')}
+  </head>
+  <body>
+    <header py:match="header">
+      ${select('*')}
+      <form action="" id="search">
+        <input type="search" name="q" value="${r.params['q'] if 'q' in r.params else ''}"/><!-- 
+        --><input type="submit" value="Look for"/>
+      </form>
+    </header>
+    <article py:match="article">
+      ${select('*')}
+    </article>
+  </body>
+</html>
