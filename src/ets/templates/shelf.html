@@ -17,9 +17,9 @@
   </head>
   <body>
     <header>
+      <div class="return"><a href="${r.route_url('shelves', _query=r.params)}">&larr; Back to the overview</a></div>
       <h1>Shelves: ${shelf.start.title} - ${shelf.end.title}</h1>
       <h2>Keywords: ${shelf.keywords}</h2>
-      <div class="return"><a href="${r.route_url('shelves', _query=r.params)}">&larr; Back to the overview</a></div>
     </header>
     <article>
       <ol class="books">

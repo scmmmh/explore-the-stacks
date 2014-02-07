@@ -26,9 +26,6 @@ header h2 {
 }
 
 header div.return {
-    position: relative;
-    left: 1em;
-    top: -1em;
 }
 
 header div.return a {
