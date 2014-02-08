@@ -191,6 +191,9 @@ ol.books li div.overlay {
 
 ol.books li div.overlay a {
     display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 ol.books li:hover div.overlay {

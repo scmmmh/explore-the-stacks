@@ -9,9 +9,9 @@ from csv import DictReader
 from elasticsearch import Elasticsearch
 from gensim import corpora, models
 from pyramid.paster import (get_appsettings, setup_logging)
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, distinct
 
-from ets.models import (DBSession, Base, Book, Topic, Shelf, Illustration)
+from ets.models import (DBSession, Base, Book, ShelfMark, Shelf, Illustration)
 
 def init_database(args):
     settings = get_appsettings(args.configuration)
@@ -32,21 +32,15 @@ def load_books(args):
     with open(args.source) as f:
         books = json.load(f)
         count = 0
-        for book_id, book_data in books.items():
-            db_book = dbsession.query(Book).filter(Book.book_identifier==book_id).first()
-            if not db_book:
-                db_book = Book(book_identifier=book_id,
-                               shelfmark=book_data['shelfmarks'][0],
-                               attrs=book_data)
-            else:
-                db_book.shelfmark = book_data['shelfmarks'][0]
-                db_book.attrs = book_data
-            dbsession.add(db_book)
+        for book_data in books:
+            dbsession.add(Book(book_identifier=book_data['identifier'],
+                               attrs=book_data))
             count = count + 1
             if count % 10000 == 0:
-                print '%i books processed' % (count)
                 dbsession.commit()
+                print '%i books processed' % (count)
     dbsession.commit()
+    print '%i books processed' % (count)
     
 def load_illustrations(args):
     settings = get_appsettings(args.configuration)
@@ -78,7 +72,7 @@ def load_illustrations(args):
             print '%i illustrations loaded' % (count)
             dbsession.commit()
 
-def create_topics(args):
+def extract_shelfmarks(args):
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -86,18 +80,22 @@ def create_topics(args):
     dbsession = DBSession()
     count = 0
     for book in dbsession.query(Book):
-        if not book.topics and book.shelfmark:
-            db_topic = dbsession.query(Topic).filter(Topic.title==book.shelfmark).first()
-            if not db_topic:
-                db_topic = Topic(title=book.shelfmark)
-            dbsession.add(db_topic)
-            db_topic.books.append(book)
-            count = count + 1
-            if count % 1000 == 0:
-                print '%i books processed' % (count)
-                dbsession.commit()
+        for title in book.attrs['shelfmarks']:
+            shelfmark = dbsession.query(ShelfMark).filter(ShelfMark.title==title).first()
+            if not shelfmark:
+                shelfmark = ShelfMark(title=title)
+            dbsession.add(shelfmark)
+            shelfmark.books.append(book)
+        count = count + 1
+        if count % 10000 == 0:
+            print '%i books processed' % (count)
+            dbsession.commit()
     dbsession.commit()
     print '%i books processed' % (count)
+    prefix_len = len(os.path.commonprefix([sm.title for sm in dbsession.query(ShelfMark)]))
+    for shelfmark in dbsession.query(ShelfMark):
+        shelfmark.title = shelfmark.title[prefix_len:]
+    dbsession.commit()        
 
 def create_shelves(args):
     settings = get_appsettings(args.configuration)
@@ -106,49 +104,72 @@ def create_shelves(args):
     DBSession.configure(bind=engine)
     dbsession = DBSession()
     shelf = None
+    book_count = 0
+    dbsession.commit()
+    idx = 0
     count = 0
-    dbsession.query(Topic).update({'shelf_id': None})
-    dbsession.query(Shelf).delete()
-    dbsession.commit()
-    for topic in dbsession.query(Topic).order_by(Topic.title):
+    for shelf_mark in dbsession.query(ShelfMark).order_by(ShelfMark.title):
         if not shelf:
-            shelf = Shelf()
+            idx = idx + 1
+            shelf = Shelf(order=idx)
             dbsession.add(shelf)
-            shelf.topics.append(topic)
-            count = len(topic.books)
-        elif count + len(topic.books) > 200:
-            shelf = Shelf()
+            shelf.shelf_marks.append(shelf_mark)
+            book_count = len(shelf_mark.books)
+        elif book_count + len(shelf_mark.books) > 200:
+            idx = idx + 1
+            shelf = Shelf(order=idx)
             dbsession.add(shelf)
-            shelf.topics.append(topic)
-            count = len(topic.books)
+            shelf.shelf_marks.append(shelf_mark)
+            book_count = len(shelf_mark.books)
         else:
-            shelf.topics.append(topic)
-            count = count + len(topic.books)
+            shelf.shelf_marks.append(shelf_mark)
+            book_count = book_count + len(shelf_mark.books)
+        count = count + 1
+        if count % 10000 == 0:
+            dbsession.commit()
+            print '%s shelfmarks processed' % (count)
     dbsession.commit()
-    for shelf in dbsession.query(Shelf):
-        if shelf.topics:
-            shelf.start = shelf.topics[0]
-            shelf.end = shelf.topics[-1]
+    print('%s shelfmarks processed' % (count))
+    while dbsession.query(Shelf).filter(Shelf.parent_id==None).count() > 50:
+        idx = 0
+        parent_shelf = None
+        child_count = 0
+        for shelf in dbsession.query(Shelf).filter(Shelf.parent_id==None).order_by(Shelf.order):
+            if not parent_shelf:
+                idx = idx + 1
+                parent_shelf = Shelf(order=idx)
+                dbsession.add(parent_shelf)
+                shelf.parent = parent_shelf
+                child_count = child_count + 1
+            elif child_count > 50:
+                parent_shelf = Shelf(order=idx)
+                dbsession.add(parent_shelf)
+                shelf.parent = parent_shelf
+                child_count = 1
+            else:
+                shelf.parent = parent_shelf
+                child_count = child_count + 1
+    root_shelf = Shelf()
+    dbsession.add(root_shelf)
+    for shelf in dbsession.query(Shelf).filter(Shelf.parent_id==None):
+        if shelf != root_shelf:
+            shelf.parent = root_shelf
+    dbsession.commit()
+    def create_titles(shelf):
+        if shelf.children:
+            for child in shelf.children:
+                create_titles(child)
+            shelf.start = shelf.children[0].start
+            shelf.end = shelf.children[-1].end
+        elif shelf.shelf_marks:
+            shelf.start = shelf.shelf_marks[0].title
+            shelf.end = shelf.shelf_marks[-1].title
+    root_shelf = dbsession.query(Shelf).filter(Shelf.parent_id==None).first()
+    create_titles(root_shelf)
+    root_shelf.start = 'Explore the Stacks'
+    root_shelf.end = 'Explore the Stacks'
     dbsession.commit()
 
-def shorten_shelves(args):
-    settings = get_appsettings(args.configuration)
-    setup_logging(args.configuration)
-    engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
-    dbsession = DBSession()
-    prefix = None
-    for shelf in dbsession.query(Shelf):
-        if prefix:
-            os.path.commonprefix([prefix, shelf.start.title, shelf.end.title])
-        else:
-            prefix = os.path.commonprefix([shelf.start.title, shelf.end.title])
-    prefix_len = len(prefix)
-    for shelf in dbsession.query(Shelf):
-        shelf.start.title = shelf.start.title[prefix_len:]
-        shelf.end.title = shelf.end.title[prefix_len:]
-    dbsession.commit()
-        
 def index_data(args):
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
@@ -156,20 +177,31 @@ def index_data(args):
     DBSession.configure(bind=engine)
     dbsession = DBSession()
     es = Elasticsearch()
+    """
     for book in dbsession.query(Book):
-        if book.topics:
-            body = {'shelf_id_': [t.shelf.id for t in book.topics]}
+        if book.shelf_marks:
+            body = {'shelf_id_': [sm.shelf.id for sm in book.shelf_marks]}
             body.update(book.attrs)
             es.index(index='ets',
                      doc_type='book',
                      body=body,
                      id=book.id)
+    """
+    def recursive_text(shelf):
+        text = []
+        if shelf.children:
+            for child in shelf.children:
+                text.extend(recursive_text(child))
+        elif shelf.shelf_marks:
+            text = [t for shelf_mark in shelf.shelf_marks for book in shelf_mark.books for t in book.attrs['title']]
+        return text
     for shelf in dbsession.query(Shelf):
         es.index(index='ets',
                  doc_type='shelf',
-                 body={'start': shelf.start.title,
-                       'end': shelf.end.title,
-                       'text': '. '.join([title for t in shelf.topics for b in t.books for title in b.attrs['title']])},
+                 body={'start': shelf.start,
+                       'end': shelf.end,
+                       'shelf_id_': shelf.parent_id,
+                       'text': ' '.join(recursive_text(shelf))},
                  id=shelf.id)
 
 STOPWORDS = ['a', 'the', 'with', 'and', 'of', 'in', 'by', 'etc', 'illustrations',
@@ -252,15 +284,12 @@ def main():
     parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.add_argument('source', help='Path to the directory containing the illustrations')
     parser.set_defaults(func=load_illustrations)
-    parser = subparsers.add_parser('create-topics')
+    parser = subparsers.add_parser('extract-shelfmarks')
     parser.add_argument('configuration', help='Experiment Support System configuration file')
-    parser.set_defaults(func=create_topics)
+    parser.set_defaults(func=extract_shelfmarks)
     parser = subparsers.add_parser('create-shelves')
     parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.set_defaults(func=create_shelves)
-    parser = subparsers.add_parser('shorten-shelves')
-    parser.add_argument('configuration', help='Experiment Support System configuration file')
-    parser.set_defaults(func=shorten_shelves)
     parser = subparsers.add_parser('index-data')
     parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.set_defaults(func=index_data)

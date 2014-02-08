@@ -13,3 +13,9 @@ def format_title(title):
         elif title[-1] == ']':
             title = title[1:-1]
     return title
+
+def shelf_title(shelf):
+    if shelf.start == shelf.end:
+        return shelf.start
+    else:
+        return '%s - %s' % (shelf.start, shelf.end)

@@ -34,28 +34,30 @@ class Shelf(Base):
     __tablename__ = 'shelves'
     
     id = Column(Integer, primary_key=True)
-    start_id = Column(Integer, ForeignKey('topics.id', name='shelves_start_fk', use_alter=True))
-    end_id = Column(Integer, ForeignKey('topics.id', name='shelves_end_fk', use_alter=True))
+    parent_id = Column(Integer, ForeignKey('shelves.id', name='shelves_shelves_fk', use_alter=True))
+    order = Column(Integer)
+    start = Column(Unicode(255))
+    end = Column(Unicode(255))
     keywords = Column(Unicode(255))
     
-    topics = relationship('Topic',
-                          primaryjoin='Shelf.id==Topic.shelf_id',
-                          order_by='Topic.title',
+    shelf_marks = relationship('ShelfMark',
+                          primaryjoin='Shelf.id==ShelfMark.shelf_id',
+                          order_by='ShelfMark.title',
                           backref=backref('shelf'))
-    start = relationship('Topic', primaryjoin='Shelf.start_id==Topic.id', uselist=False)
-    end = relationship('Topic', primaryjoin='Shelf.end_id==Topic.id', uselist=False)
+    children = relationship('Shelf', backref=backref('parent', remote_side=[id]),
+                            primaryjoin='Shelf.id==Shelf.parent_id')
 
-class Topic(Base):
+class ShelfMark(Base):
     
-    __tablename__ = 'topics'
+    __tablename__ = 'shelf_marks'
     
     id = Column(Integer, primary_key=True)
     shelf_id = Column(Integer, ForeignKey(Shelf.id, name='topics_shelf_fk'))
     title = Column(Unicode(255), index=True)
         
-books_topics = Table('books_topics', Base.metadata,
-                     Column('book_id', Integer, ForeignKey('books.id', name='books_topics_book_fk')),
-                     Column('topic_id', Integer, ForeignKey('topics.id', name='books_topics_topic_fk')))
+books_shelf_marks = Table('books_shelf_marks', Base.metadata,
+                          Column('book_id', Integer, ForeignKey('books.id', name='books_shelf_marks_book_fk')),
+                          Column('shelf_mark_id', Integer, ForeignKey('shelf_marks.id', name='books_shelf_marks_shelf_mark_fk')))
     
 class Book(Base, JsonAttrs):
     
@@ -63,15 +65,9 @@ class Book(Base, JsonAttrs):
     
     id = Column(Integer, primary_key=True)
     book_identifier = Column(Unicode(255), index=True)
-    shelfmark = Column(Unicode(255), index=True)
+    order = Column(Integer)
     
-    prev_id = Column(Integer, ForeignKey('books.id', name='book_prev_fk'))
-    next_id = Column(Integer, ForeignKey('books.id', name='book_next_fk'))
-    
-    prev = relationship('Book', primaryjoin='Book.prev_id==Book.id', uselist=False, remote_side=[id])
-    next = relationship('Book', primaryjoin='Book.next_id==Book.id', uselist=False, remote_side=[id])
-
-    topics = relationship(Topic, secondary=books_topics, backref='books')
+    shelf_marks = relationship(ShelfMark, secondary=books_shelf_marks, backref='books')
 
 class Illustration(Base, JsonAttrs):
     
