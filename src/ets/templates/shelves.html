@@ -10,6 +10,10 @@
       <h1>${h.shelf_title(shelf)}</h1>
     </header>
     <article>
+      <div class="intra-shelf">
+        <a py:if="prev" href="${r.route_url('shelf', sid=prev.id, _query=r.params)}">&uarr; Previous set of shelves &uarr;</a>
+        <span py:if="not prev">&uarr; Previous set of shelves &uarr;</span>
+      </div>
       <ol class="shelves">
         <li py:for="shelf in shelves" class="type-${'result' if shelf.id in matches else 'other'}">
           <a href="${r.route_url('shelf', sid=shelf.id, _query=r.params)}" title="${h.shelf_title(shelf)}">
@@ -18,6 +22,10 @@
           </a>
         </li>
       </ol>
+      <div class="intra-shelf">
+        <a py:if="next" href="${r.route_url('shelf', sid=next.id, _query=r.params)}">&darr; Next set of shelves &darr;</a>
+        <span py:if="not next">&darr; Next set of shelves &darr;</span>
+      </div>
     </article>
   </body>
 </html>

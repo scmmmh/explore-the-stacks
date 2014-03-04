@@ -34,6 +34,10 @@ header div.return a {
     color: #a00;
 }
 
+header div.return a:hover {
+    text-decoration: underline;
+}
+
 #search {
     display: inline-block;
     box-model: content-box;
@@ -71,6 +75,25 @@ article {
     padding: 0 2em;
 }
 
+article div.intra-shelf {
+    text-align:center;
+    margin: 0.8em 0;
+}
+
+article div.intra-shelf a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #a00;
+}
+
+article div.intra-shelf a:hover {
+    text-decoration: underline;
+}
+
+article div.intra-shelf span {
+    color: #afafaf;
+    font-weight: bold;
+}
 /**
  * Styles for the shelf-overview page
  */

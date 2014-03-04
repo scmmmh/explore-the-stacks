@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 from pywebtools.renderer import render
+from sqlalchemy import and_
 
 from ets.models import (DBSession, Book, ShelfMark, Shelf)
 
@@ -23,7 +24,7 @@ def root(request):
     raise HTTPFound(request.route_url('shelf', sid=shelf.id))
 
 @render({'text/html': 'shelves.html'})
-def shelf_group(request, shelf):
+def shelf_group(request, shelf, prev, nxt):
     dbsession = DBSession()
     shelves = dbsession.query(Shelf)
     if shelf:
@@ -39,11 +40,13 @@ def shelf_group(request, shelf):
     else:
         matches = []
     return {'shelf': shelf,
+            'prev': prev,
+            'next': nxt,
             'shelves': shelves,
             'matches': matches}
 
 @render({'text/html': 'shelf.html'})
-def book_shelf(request, shelf):
+def book_shelf(request, shelf, prev, nxt):
     if 'q' in request.params and request.params['q'].strip():
         es = Elasticsearch()
         matches = [int(d['_id']) for d in es.search(index='ets',
@@ -56,6 +59,8 @@ def book_shelf(request, shelf):
     dbsession = DBSession()
     books = dbsession.query(Book).join(ShelfMark.books).filter(ShelfMark.shelf_id==request.matchdict['sid'])
     return {'shelf': shelf,
+            'prev': prev,
+            'next': nxt,
             'books': books,
             'matches': matches}
 
@@ -63,7 +68,15 @@ def book_shelf(request, shelf):
 def shelves(request):
     dbsession = DBSession()
     shelf = dbsession.query(Shelf).filter(Shelf.id==request.matchdict['sid']).first()
-    if shelf.children:
-        return shelf_group(request, shelf)
+    if shelf and shelf.order:
+        prev = dbsession.query(Shelf).filter(and_(Shelf.parent_id==shelf.parent_id,
+                                                  Shelf.order==shelf.order - 1)).first()
+        nxt = dbsession.query(Shelf).filter(and_(Shelf.parent_id==shelf.parent_id,
+                                                 Shelf.order==shelf.order + 1)).first()
     else:
-        return book_shelf(request, shelf)
+        prev = None
+        nxt = None
+    if shelf.children:
+        return shelf_group(request, shelf, prev, nxt)
+    else:
+        return book_shelf(request, shelf, prev, nxt)

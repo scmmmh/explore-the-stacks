@@ -18,16 +18,24 @@
   <body>
     <header>
       <div class="return"><a py:if="shelf.parent" href="${r.route_url('shelf', sid=shelf.parent.id, _query=r.params)}">&larr; Back to ${h.shelf_title(shelf.parent)}</a></div>
-      <h1>Shelves: ${shelf.start} - ${shelf.end}</h1>
+      <h1>Shelfmarks: ${shelf.start} - ${shelf.end}</h1>
       <h2>Keywords: ${shelf.keywords}</h2>
     </header>
     <article>
+      <div class="intra-shelf">
+        <a py:if="prev" href="${r.route_url('shelf', sid=prev.id, _query=r.params)}">&uarr; Previous shelf &uarr;</a>
+        <span py:if="not prev">&uarr; Previous shelf &uarr;</span>
+      </div>
       <ol class="books">
         <li py:for="book in books" class="type-${'result' if book.id in matches else 'shelf'}">
           <div class="content">${' '.join(book.attrs['title'])}</div><!--
           --><div class="overlay"><a href="#" data-id="${book.id}" data-illustrations="${h.json.dumps([i.flickr_id for i in book.illustrations])}" title="${' '.join(book.attrs['title'])}">${' '.join(book.attrs['title'])}</a></div>
         </li>
       </ol>
+      <div class="intra-shelf">
+        <a py:if="next" href="${r.route_url('shelf', sid=next.id, _query=r.params)}">&darr; Next shelf &darr;</a>
+        <span py:if="not next">&darr; Next shelf &darr;</span>
+      </div>
     </article>
   </body>
 </html>
