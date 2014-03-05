@@ -39,7 +39,6 @@ def shelf_group(request, shelf, prev, nxt):
         matches = set([int(d['_id']) for d in es.search(index='ets',
                                                    doc_type='shelf',
                                                    body=body)['hits']['hits']])
-        print matches
     else:
         matches = []
     return {'shelf': shelf,
