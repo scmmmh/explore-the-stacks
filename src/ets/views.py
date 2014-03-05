@@ -33,10 +33,13 @@ def shelf_group(request, shelf, prev, nxt):
         shelves = shelves.filter(Shelf.parent_id==None).order_by(Shelf.order)
     if 'q' in request.params and request.params['q'].strip():
         es = Elasticsearch()
+        body = {'query': {'match': {'_all': request.params['q'].strip()}},
+                'filter': {'term': {'shelf_id_': request.matchdict['sid']}},
+                'size': shelves.count()}
         matches = set([int(d['_id']) for d in es.search(index='ets',
                                                    doc_type='shelf',
-                                                   body={'query': {'match': {'_all': request.params['q'].strip()}},
-                                                     'size': shelves.count()})['hits']['hits']])
+                                                   body=body)['hits']['hits']])
+        print matches
     else:
         matches = []
     return {'shelf': shelf,
