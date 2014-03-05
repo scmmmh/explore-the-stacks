@@ -14,6 +14,8 @@ from sqlalchemy import engine_from_config, distinct
 from ets.models import (DBSession, Base, Book, ShelfMark, Shelf, Illustration)
 
 def init_database(args):
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Initialising the database')
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -21,9 +23,11 @@ def init_database(args):
     if args.drop_existing:
         Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    es = Elasticsearch()
+    logger.info('Database initialised')
 
 def load_books(args):
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Loading books')
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -38,11 +42,13 @@ def load_books(args):
             count = count + 1
             if count % 10000 == 0:
                 dbsession.commit()
-                print '%i books processed' % (count)
+                logger.debug('%i books loaded' % (count))
     dbsession.commit()
-    print '%i books processed' % (count)
+    logger.info('%i books loaded' % (count))
     
 def load_illustrations(args):
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Loading illustrations')
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -69,10 +75,14 @@ def load_illustrations(args):
                         db_book.illustrations.append(illustration)
                         dbsession.add(illustration)
                         count = count + 1
-            print '%i illustrations loaded' % (count)
+                        if count % 10000 == 0:
+                            logger.debug('%i illustrations loaded' % (count))
             dbsession.commit()
+    logger.info('%i illustrations loaded' % (count))
 
 def extract_shelfmarks(args):
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Extracting shelf-marks')
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -88,16 +98,19 @@ def extract_shelfmarks(args):
             shelfmark.books.append(book)
         count = count + 1
         if count % 10000 == 0:
-            print '%i books processed' % (count)
+            logger.debug('%i books processed' % (count))
             dbsession.commit()
     dbsession.commit()
-    print '%i books processed' % (count)
+    logger.debug('%i books processed' % (count))
     prefix_len = len(os.path.commonprefix([sm.title for sm in dbsession.query(ShelfMark)]))
     for shelfmark in dbsession.query(ShelfMark):
         shelfmark.title = shelfmark.title[prefix_len:]
-    dbsession.commit()        
+    dbsession.commit()
+    logger.info('Shelf-marks extracted')
 
 def create_shelves(args):
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Creating shelves')
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
@@ -127,9 +140,10 @@ def create_shelves(args):
         count = count + 1
         if count % 10000 == 0:
             dbsession.commit()
-            print '%s shelfmarks processed' % (count)
+            logger.debug('%s shelfmarks processed' % (count))
     dbsession.commit()
-    print('%s shelfmarks processed' % (count))
+    logger.debug('%s shelfmarks processed' % (count))
+    logger.debug('Creating shelf hierarchy')
     while dbsession.query(Shelf).filter(Shelf.parent_id==None).count() > 50:
         idx = 0
         parent_shelf = None
@@ -155,6 +169,7 @@ def create_shelves(args):
         if shelf != root_shelf:
             shelf.parent = root_shelf
     dbsession.commit()
+    logger.debug('Creating shelf titles')
     def create_titles(shelf):
         if shelf.children:
             for child in shelf.children:
@@ -169,15 +184,27 @@ def create_shelves(args):
     root_shelf.start = 'Explore the Stacks'
     root_shelf.end = 'Explore the Stacks'
     dbsession.commit()
+    logger.info('Shelves created')
+
+def recursive_text(shelf):
+    text = []
+    if shelf.children:
+        for child in shelf.children:
+            text.extend(recursive_text(child))
+    elif shelf.shelf_marks:
+        text = [t for shelf_mark in shelf.shelf_marks for book in shelf_mark.books for t in book.attrs['title']]
+    return text
 
 def index_data(args):
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Indexing data')
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     dbsession = DBSession()
     es = Elasticsearch()
-    """
+    count = 0
     for book in dbsession.query(Book):
         if book.shelf_marks:
             body = {'shelf_id_': [sm.shelf.id for sm in book.shelf_marks]}
@@ -186,15 +213,11 @@ def index_data(args):
                      doc_type='book',
                      body=body,
                      id=book.id)
-    """
-    def recursive_text(shelf):
-        text = []
-        if shelf.children:
-            for child in shelf.children:
-                text.extend(recursive_text(child))
-        elif shelf.shelf_marks:
-            text = [t for shelf_mark in shelf.shelf_marks for book in shelf_mark.books for t in book.attrs['title']]
-        return text
+            count = count + 1
+            if count % 1000 == 0:
+                logger.debug('%i books indexed' % (count))
+    logger.info('%i books indexed' % (count))
+    count = 0
     for shelf in dbsession.query(Shelf):
         es.index(index='ets',
                  doc_type='shelf',
@@ -203,6 +226,10 @@ def index_data(args):
                        'shelf_id_': shelf.parent_id,
                        'text': ' '.join(recursive_text(shelf))},
                  id=shelf.id)
+        count = count + 1
+        if count % 10 == 0:
+            logger.debug('%i shelves indexed' % (count))
+    logger.info('%i shelves indexed' % (count))
 
 STOPWORDS = ['a', 'the', 'with', 'and', 'of', 'in', 'by', 'etc', 'illustrations',
              'to', 'from', 'on', 'edition', 'an', 'being', 'illustrated', 'for',
@@ -235,11 +262,14 @@ def create_keywords(args):
                 bow = self.dictionary.doc2bow(doc)
                 yield bow
     
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Creating keywords')
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     dbsession = DBSession()
+    logger.info('Creating dictionary')
     dictionary = corpora.dictionary.Dictionary()
     for book in dbsession.query(Book):
         for title in book.attrs['title']:
@@ -249,23 +279,22 @@ def create_keywords(args):
     dictionary.filter_extremes(keep_n=None)
     dictionary.compactify()
     dictionary.save('corpus.dict')
+    logger.info('Creating corpus')
     corpora.MmCorpus.serialize('corpus.mm', BookCorpus(dbsession.query(Book), dictionary))
     dictionary = corpora.dictionary.Dictionary.load('corpus.dict')
     model = models.tfidfmodel.TfidfModel(BookCorpus(dbsession.query(Book), dictionary))
+    logger.info('Processing shelves')
     for shelf in dbsession.query(Shelf):
-        text = []
-        for topic in shelf.topics:
-            for book in topic.books:
-                text.extend(book.attrs['title'])
-        text = ' '.join(text)
+        text = ' '.join(recursive_text(shelf))
         for sep in ['.', ',', ';', ':', '-', '_', '?', '!', '(', ')', '[', ']', '{', '}']:
             text = text.replace(sep, ' ')
         doc = [w.lower() for w in text.split(' ') if w.lower() not in STOPWORDS and len(w) > 1]
         topics = model[dictionary.doc2bow(doc)]
         topics.sort(key=lambda k: k[1], reverse=True)
-        keywords = [dictionary[t[0]] for t in topics[0:5]]
+        keywords = [dictionary[t[0]] for t in topics[0:10]]
         shelf.keywords = ', '.join([k[0].upper() + k[1:] for k in keywords])
     dbsession.commit()
+    logger.info('Keywords created')
         
 
 def main():
@@ -298,12 +327,5 @@ def main():
     parser.set_defaults(func=create_keywords)
 
     args = root_parser.parse_args()
-
-    logger = logging.getLogger('mapmaker')
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(logging.Formatter('(%(asctime)s)\t%(levelname)s\t%(message)s'))
-    logger.addHandler(handler)
 
     args.func(args)
