@@ -2,7 +2,7 @@
 <html xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="layout.html"/>
   <head py:with="key='2e93c237dd6bb16294b7df4e6be9578f';secret='16088fdc45ee2c2f'">
-    <title>Explore the Stacks</title>
+    <title>Shelfmarks: ${shelf.start} - ${shelf.end}</title>
     <script>
       $(document).ready(function() {
           $('ol.books').illustrationBrowser({
