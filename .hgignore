@@ -9,3 +9,7 @@ syntax: regexp
 ^\.settings$
 syntax: regexp
 ^development\.ini$
+syntax: regexp
+^corpora$
+syntax: regexp
+^tokenizers$
