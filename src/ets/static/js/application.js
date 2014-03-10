@@ -195,3 +195,62 @@
 	};
 }(jQuery));
 
+(function ($) {
+	/**
+	 * The illustrationBrowser jQuery plugin provides the GUI functionality
+	 * for the illustration viewer.
+	 */
+	var methods = {
+		init: function(options) {
+			return this.each(function() {
+				var item = $(this);
+				item.on('mouseover', function() {
+					item.textScroller('start');
+				});
+				item.on('mouseout', function() {
+					item.textScroller('stop');
+				});
+			});
+		},
+		start: function() {
+			return this.each(function() {
+				var item = $(this);
+				item.find('.keywords-scroll').css('display', 'block');
+				var width = item.find('.keywords-scroll').outerWidth(true) - item.find('.keywords').width();
+				item.find('.keywords-scroll').animate({
+					left: -width
+				}, {
+					duration: width * 30,
+					easing: 'linear',
+					done: function() {
+						item.data('scroll.timeout', setTimeout(function() {
+							item.find('.keywords-scroll').animate({
+								left: 0
+							}, {
+								duration: width * 30,
+								easing: 'linear'
+							});
+						}, 2000));
+					}
+				});
+			});
+		},
+		stop: function() {
+			return this.each(function() {
+				var item = $(this);
+				item.find('.keywords-scroll').stop().css('left', '0px').hide();
+				clearTimeout(item.data('scroll.timeout'));
+			});
+		}
+	};
+		
+	$.fn.textScroller = function(method) {
+	    if(methods[method]) {
+	   		return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+	    } else if(typeof method === 'object' || !method) {
+	   		return methods.init.apply(this, arguments);
+	   	} else {
+	   		$.error('Method ' +  method + ' does not exist on jQuery.textScroller');
+	   	}
+	};
+}(jQuery));

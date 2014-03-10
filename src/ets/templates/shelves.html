@@ -3,6 +3,12 @@
   <xi:include href="layout.html"/>
   <head>
     <title>${h.shelf_title(shelf)}</title>
+    <script>
+      $(document).ready(function() {
+          $('ol.shelves li').textScroller({
+          });
+      });
+    </script>
   </head>
   <body>
     <header>
@@ -16,9 +22,9 @@
       </div>
       <ol class="shelves">
         <li py:for="shelf in shelves" class="type-${'result' if shelf.id in matches else 'other'}">
-          <a href="${r.route_url('shelf', sid=shelf.id, _query=r.params)}" title="${h.shelf_title(shelf)}">
+          <a href="${r.route_url('shelf', sid=shelf.id, _query=r.params)}">
             <span class="shelfmarks">${h.shelf_title(shelf)}</span>
-            <span class="keywords">${shelf.keywords}</span>
+            <span class="keywords">${shelf.keywords}<span class="keywords-scroll">${shelf.keywords}</span></span>
           </a>
         </li>
       </ol>

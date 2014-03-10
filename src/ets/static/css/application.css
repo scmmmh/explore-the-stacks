@@ -149,7 +149,7 @@ ol.shelves li a:link {
     color: #dddddd;
 }
 
-ol.shelves li span {
+ol.shelves li span.shelfmarks, ol.shelves li span.keywords {
     display: block;
     overflow: hidden;
     white-space: nowrap;
@@ -164,6 +164,21 @@ ol.shelves li span.shelfmarks {
 ol.shelves li span.keywords {
     margin: 1em 0 0 0;
     font-size: 0.8em;
+    position: relative;
+}
+
+ol.shelves li span.keywords-scroll {
+    display: none;
+    position: absolute;
+    top: 0px;
+}
+
+ol.shelves li span.keywords-scroll {
+    background-color: #444;
+}
+
+ol.shelves li.type-result span.keywords-scroll {
+    background-color: #a00;
 }
 
 /**
