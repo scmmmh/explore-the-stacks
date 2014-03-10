@@ -18,7 +18,8 @@ requires = ['pyramid',
             'pywebtools>=0.4',
             'elasticsearch',
             'lxml',
-            'gensim']
+            'gensim',
+            'nltk']
 
 setup(name='ExploreTheStacks',
       version='0.0.99',

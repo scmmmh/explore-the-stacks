@@ -2,6 +2,7 @@
 
 import json
 import logging
+import nltk
 import os
 
 from argparse import ArgumentParser
@@ -231,22 +232,14 @@ def index_data(args):
             logger.debug('%i shelves indexed' % (count))
     logger.info('%i shelves indexed' % (count))
 
-STOPWORDS = ['a', 'the', 'with', 'and', 'of', 'in', 'by', 'etc', 'illustrations',
-             'to', 'from', 'on', 'edition', 'an', 'being', 'illustrated', 'for',
-             'de', 'its', 'le', 'du', 'les', 'at', 'appendix', 'some', 'or',
-             'other', 'la', 'und', 'das', 'der', 'die', 'des', 'au', 'mit',
-             'his', 'her', 'one', 'two', 'three', 'en', 'sur', 'del', 'por',
-             'nach', 'auf', 'um', 'which', 'with', 'sobre', 'ii', 'iii', 'iv',
-             'vi', 'vii', 'vii', 'ix', 'mr', 'mrs', 'ms', 'during', 'as',
-             'edited', 'par', 'dans', 'zum', 'beim', 'et', 'que', 'it', 'first',
-             'second', 'third', 'avec', 'including', 'that', 'he', 'she', 'bd',
-             'von', 'con', 'al', 'den', 'zur', 'aus', 'los', 'da', 'plates',
-             'van', 'het', 'di', 'della', 'dem', 'og', 'och', 'new', 'old', 'el',
-             'single', 'im', 'bis', 'four', 'five', 'las', 'los', 'delle', 'dei',
-             'aux', 'para', 'sus', 'them', 'me', 'entre', 'us', 'our', 'son',
-             'il', 'ses', 'depuis', 'ou', "d'un", 'their', 'ein', u'à', u'á',
-             u'és', 'ed', 'tot', 'einer', 'einem', 'eines', 'zu', 'st', 'om' ]
 def create_keywords(args):
+    nltk.data.path.append('./')
+    STOPWORDS = nltk.corpus.stopwords.words('english') + nltk.corpus.stopwords.words('german') + \
+                nltk.corpus.stopwords.words('french') + nltk.corpus.stopwords.words('italian') + \
+                nltk.corpus.stopwords.words('spanish') + ['etc', 'new']
+    STOPWORDS = [w.decode('utf8') for w in STOPWORDS]
+    sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+    word_tokenizer = nltk.tokenize.punkt.PunktWordTokenizer()
     class BookCorpus(object):
         def __init__(self, query, dictionary):
             self.query = query
@@ -254,12 +247,8 @@ def create_keywords(args):
         
         def __iter__(self):
             for book in self.query:
-                doc = []
-                for title in book.attrs['title']:
-                    for sep in ['.', ',', ';', ':', '-', '_', '?', '!', '(', ')', '[', ']', '{', '}']:
-                        title = title.replace(sep, ' ')
-                    doc.extend([w.lower() for w in title.split() if w.lower() not in STOPWORDS and len(w) > 1])
-                bow = self.dictionary.doc2bow(doc)
+                words = [w.lower() for title in book.attrs['title'] for s in sentence_tokenizer.tokenize(title) for w in word_tokenizer.tokenize(s) if w.lower() not in STOPWORDS and len(w) > 1]
+                bow = self.dictionary.doc2bow(words)
                 yield bow
     
     logger = logging.getLogger('explorethestacks')
@@ -272,10 +261,8 @@ def create_keywords(args):
     logger.info('Creating dictionary')
     dictionary = corpora.dictionary.Dictionary()
     for book in dbsession.query(Book):
-        for title in book.attrs['title']:
-            for sep in ['.', ',', ';', ':', '-', '_', '?', '!', '(', ')', '[', ']', '{', '}']:
-                title = title.replace(sep, ' ')
-            dictionary.doc2bow([w.lower() for w in title.split() if w.lower() not in STOPWORDS and len(w) > 1], allow_update=True)
+        words = [w.lower() for title in book.attrs['title'] for s in sentence_tokenizer.tokenize(title) for w in word_tokenizer.tokenize(s) if w.lower() not in STOPWORDS and len(w) > 1]
+        dictionary.doc2bow(words, allow_update=True)
     dictionary.filter_extremes(keep_n=None)
     dictionary.compactify()
     dictionary.save('corpus.dict')
