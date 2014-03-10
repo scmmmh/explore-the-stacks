@@ -60,6 +60,7 @@ header div.return a:hover {
     border-right: 0px solid #222;
     border-bottom: 1px solid #222;
     border-left: 1px solid #222;
+    width: 30em;
 }
 
 #search input[type=submit] {
@@ -69,6 +70,8 @@ header div.return a:hover {
     border-left: 0px solid #222;
     background-color: #222;
     color: #eee;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
 }
 
 article {

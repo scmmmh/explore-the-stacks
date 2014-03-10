@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 from pywebtools.renderer import render
+from random import sample
 from sqlalchemy import and_
 
 from ets.models import (DBSession, Book, ShelfMark, Shelf)
@@ -41,11 +42,19 @@ def shelf_group(request, shelf, prev, nxt):
                                                    body=body)['hits']['hits']])
     else:
         matches = []
+    query = dbsession.query(Shelf)
+    if shelf.parent_id:
+        query = query.filter(Shelf.parent_id==shelf.id)
+    keywords = set()
+    for kw_shelf in query:
+        keywords.update([kw for kw in kw_shelf.keywords.split(',')])
+    keywords = [kw.strip() for kw in sample(keywords, 6)]
     return {'shelf': shelf,
             'prev': prev,
             'next': nxt,
             'shelves': shelves,
-            'matches': matches}
+            'matches': matches,
+            'keywords': keywords}
 
 @render({'text/html': 'shelf.html'})
 def book_shelf(request, shelf, prev, nxt):
@@ -60,11 +69,13 @@ def book_shelf(request, shelf, prev, nxt):
         matches = []
     dbsession = DBSession()
     books = dbsession.query(Book).join(ShelfMark.books).filter(ShelfMark.shelf_id==request.matchdict['sid'])
+    keywords = [kw.strip() for kw in sample(shelf.keywords.split(','), min(6, len(shelf.keywords.split(','))))]
     return {'shelf': shelf,
             'prev': prev,
             'next': nxt,
             'books': books,
-            'matches': matches}
+            'matches': matches,
+            'keywords': keywords}
 
 @view_config(route_name='shelf')
 def shelves(request):

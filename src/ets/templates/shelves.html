@@ -14,6 +14,7 @@
     <header>
       <div class="return"><a py:if="shelf.parent" href="${r.route_url('shelf', sid=shelf.parent.id, _query=r.params)}">&larr; Back to ${h.shelf_title(shelf.parent)}</a></div>
       <h1>${h.shelf_title(shelf)}</h1>
+      <h2>Keywords: ${shelf.keywords}</h2>
     </header>
     <article>
       <div class="intra-shelf">
