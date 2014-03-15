@@ -131,34 +131,36 @@
 				var component = $(this);
 				var options = component.data('options');
 				var illustration = component.data('cache')[component.data('current_book_id')][component.data('current_illustration_idx')];
-				if(illustration.source) {
-					component.data('book').find('ul.pages li:nth-child(' + (component.data('current_illustration_idx') + 1) + ') img').attr('src', illustration.source);
-				} else {
-					$.ajax(options.flickr.url, {
-						data: {
-							method: 'flickr.photos.getSizes',
-							api_key: options.flickr.key,
-							format: 'json',
-							nojsoncallback: '1',
-							photo_id: illustration.id
-						}
-					}).done(function(data) {
-						var size_preference = component.data('flickr-sizes');
-						var found = false;
-						for(var idx in size_preference) {
-							for(var idx2 in data.sizes.size) {
-								if(data.sizes.size[idx2].label == size_preference[idx]) {
-									component.data('book').find('ul.pages li:nth-child(' + (component.data('current_illustration_idx') + 1) + ') img').attr('src', data.sizes.size[idx2].source);
-									illustration.source = data.sizes.size[idx2].source;
-									found = true;
+				if(illustration) {
+					if(illustration.source) {
+						component.data('book').find('ul.pages li:nth-child(' + (component.data('current_illustration_idx') + 1) + ') img').attr('src', illustration.source);
+					} else {
+						$.ajax(options.flickr.url, {
+							data: {
+								method: 'flickr.photos.getSizes',
+								api_key: options.flickr.key,
+								format: 'json',
+								nojsoncallback: '1',
+								photo_id: illustration.id
+							}
+						}).done(function(data) {
+							var size_preference = component.data('flickr-sizes');
+							var found = false;
+							for(var idx in size_preference) {
+								for(var idx2 in data.sizes.size) {
+									if(data.sizes.size[idx2].label == size_preference[idx]) {
+										component.data('book').find('ul.pages li:nth-child(' + (component.data('current_illustration_idx') + 1) + ') img').attr('src', data.sizes.size[idx2].source);
+										illustration.source = data.sizes.size[idx2].source;
+										found = true;
+										break;
+									}
+								}
+								if(found) {
 									break;
 								}
 							}
-							if(found) {
-								break;
-							}
-						}
-					});
+						});
+					}
 				}
 			});
 		},
