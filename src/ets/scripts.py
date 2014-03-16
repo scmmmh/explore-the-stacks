@@ -57,7 +57,7 @@ def load_illustrations(args):
     dbsession = DBSession()
     count = 0
     db_book = None
-    for path, _, filenames in os.walk('/home/mhall/Documents/Data/British_Library/imagedirectory/'):
+    for path, _, filenames in os.walk(args.source):
         for filename in filenames:
             if not filename.endswith('.tsv'):
                 continue
@@ -81,6 +81,27 @@ def load_illustrations(args):
             dbsession.commit()
     logger.info('%i illustrations loaded' % (count))
 
+def filter_books(args):
+    logger = logging.getLogger('explorethestacks')
+    logger.info('Filtering books')
+    settings = get_appsettings(args.configuration)
+    setup_logging(args.configuration)
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    DBSession.configure(bind=engine)
+    dbsession = DBSession()
+    count = 0
+    filter_count = 0
+    for book in dbsession.query(Book):
+        if not book.illustrations:
+            dbsession.delete(book)
+            filter_count = filter_count + 1
+        count = count + 1
+        if count % 10000 == 0:
+            logger.debug('%i books processed' % (count))
+            dbsession.commit()
+    dbsession.commit()
+    logger.info('%i books filtered' % (filter_count))
+        
 def extract_shelfmarks(args):
     logger = logging.getLogger('explorethestacks')
     logger.info('Extracting shelf-marks')
@@ -300,6 +321,9 @@ def main():
     parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.add_argument('source', help='Path to the directory containing the illustrations')
     parser.set_defaults(func=load_illustrations)
+    parser = subparsers.add_parser('filter-books')
+    parser.add_argument('configuration', help='Experiment Support System configuration file')
+    parser.set_defaults(func=filter_books)
     parser = subparsers.add_parser('extract-shelfmarks')
     parser.add_argument('configuration', help='Experiment Support System configuration file')
     parser.set_defaults(func=extract_shelfmarks)
