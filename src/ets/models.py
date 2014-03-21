@@ -10,8 +10,9 @@ from sqlalchemy import (Column, Integer, Unicode, ForeignKey,
                         UnicodeText, Table)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (scoped_session, sessionmaker, relationship, backref)
+from zope.sqlalchemy import ZopeTransactionExtension
 
-DBSession = scoped_session(sessionmaker())
+DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
 class JsonAttrs(object):

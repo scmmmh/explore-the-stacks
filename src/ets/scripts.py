@@ -2,13 +2,11 @@
 
 import json
 import logging
-import nltk
 import os
 
 from argparse import ArgumentParser
 from csv import DictReader
 from elasticsearch import Elasticsearch
-from gensim import corpora, models
 from pyramid.paster import (get_appsettings, setup_logging)
 from sqlalchemy import engine_from_config, distinct
 
@@ -254,6 +252,8 @@ def index_data(args):
     logger.info('%i shelves indexed' % (count))
 
 def create_keywords(args):
+    import nltk
+    from gensim import corpora, models
     nltk.data.path.append('./')
     STOPWORDS = nltk.corpus.stopwords.words('english') + nltk.corpus.stopwords.words('german') + \
                 nltk.corpus.stopwords.words('french') + nltk.corpus.stopwords.words('italian') + \
