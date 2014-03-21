@@ -16,7 +16,6 @@ def init(config):
     config.add_route('favicon', '/favicon.ico')
     config.add_route('root', '/')
     config.add_route('shelf', '/shelf/{sid}')
-    config.add_route('flickr', 'http://api.flickr.com/services/rest/')
 
 @view_config(route_name='root')
 def root(request):
