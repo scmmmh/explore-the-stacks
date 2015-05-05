@@ -24,7 +24,7 @@ requires = ['pyramid',
             'nltk']
 
 setup(name='ExploreTheStacks',
-      version='0.0.99',
+      version='1.0',
       description='Book browser using an archive stack exploring UI',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
