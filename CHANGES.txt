@@ -1,4 +1,10 @@
-0.1
+1.0.1
+-----
+
+* *BUGFIX*: Reverted the scripts back to using the DB session directly, rather
+  than using the transaction manager.
+
+1.0
 ---
 
-NEW: Initial release
+* *NEW*: Initial version
