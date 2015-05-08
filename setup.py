@@ -21,10 +21,10 @@ requires = ['pyramid',
             'elasticsearch',
             'lxml',
             'gensim',
-            'nltk']
+            'nltk>=3.0']
 
 setup(name='ExploreTheStacks',
-      version='1.0',
+      version='1.0.1',
       description='Book browser using an archive stack exploring UI',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

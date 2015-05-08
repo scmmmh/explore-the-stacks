@@ -3,6 +3,9 @@
 
 * *BUGFIX*: Reverted the scripts back to using the DB session directly, rather
   than using the transaction manager.
+* *BUGFIX*: Correctly handle the case where the shelf has no keywords
+* *BUGFIX*: Correctly handle the case where the search API cannot be accessed
+* *BUGFIX*: Make scripts work for NTLK 3
 
 1.0
 ---
