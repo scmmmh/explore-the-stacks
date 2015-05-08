@@ -252,9 +252,8 @@ def create_keywords(args):
     STOPWORDS = nltk.corpus.stopwords.words('english') + nltk.corpus.stopwords.words('german') + \
                 nltk.corpus.stopwords.words('french') + nltk.corpus.stopwords.words('italian') + \
                 nltk.corpus.stopwords.words('spanish') + ['etc', 'new']
-    STOPWORDS = [w.decode('utf8') for w in STOPWORDS]
     sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-    word_tokenizer = nltk.tokenize.punkt.PunktWordTokenizer()
+    word_tokenizer = nltk.tokenize.TreebankWordTokenizer()
     class BookCorpus(object):
         def __init__(self, query, dictionary):
             self.query = query
