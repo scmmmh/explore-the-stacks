@@ -1,4 +1,9 @@
-0.1
+1.1
 ---
 
-NEW: Initial release
+* *UPDATE*: Transition to Python 3, Kajiki, Spacy
+
+1.0
+---
+
+* *NEW*: Initial release

@@ -7,7 +7,6 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = ['pyramid',
-            'pywebtools',
             'pyramid_debugtoolbar',
             'sqlalchemy',
             'pyramid_tm',
@@ -17,14 +16,15 @@ requires = ['pyramid',
             'mimeparse',
             'formencode',
             'pyramid_beaker',
-            'pywebtools>=0.4',
             'elasticsearch',
             'lxml',
             'gensim',
-            'nltk']
+            'spacy',
+            'kajiki',
+            'asset']
 
 setup(name='ExploreTheStacks',
-      version='1.0',
+      version='1.1',
       description='Book browser using an archive stack exploring UI',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

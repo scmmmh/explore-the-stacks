@@ -1,8 +1,8 @@
 Explore the Stacks README
 =========================
 
-First download the NLTK stopwords and Punkt tokenizer into the directory you
-are running the ExploreTheStacks app in.
+First install numpy & scipy. Then install the Explore the Stacks package.
+Finally run ``python -m spacy.en.download`` to install the language models.
 
 Then run the ExploreTheStacks application in the following order:
 

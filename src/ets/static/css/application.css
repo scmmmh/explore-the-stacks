@@ -16,13 +16,9 @@ header h1 {
     margin: 0 0 0.5em 0;
 }
 
-header h2 {
+header h1 small {
+    display: block;
     font-size: 10pt;
-    font-weight: normal;
-    margin: 0 0 0.5em 0;
-    position: relative;
-    left: 1em;
-    top: -1em;
 }
 
 header div.return {
@@ -96,6 +92,19 @@ article div.intra-shelf a:hover {
 article div.intra-shelf span {
     color: #afafaf;
     font-weight: bold;
+}
+footer {
+    font-size: 8pt;
+    padding-left: 2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #ddd;
+}
+footer a {
+    color: #a00;
+    text-decoration: none;
+}
+footer a:hover {
+    text-decoration: underline;
 }
 /**
  * Styles for the shelf-overview page

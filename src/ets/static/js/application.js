@@ -199,8 +199,7 @@
 
 (function ($) {
 	/**
-	 * The illustrationBrowser jQuery plugin provides the GUI functionality
-	 * for the illustration viewer.
+	 * The textScroller scrolls the shelf keywords.
 	 */
 	var methods = {
 		init: function(options) {

@@ -13,3 +13,5 @@ syntax: regexp
 ^corpora$
 syntax: regexp
 ^tokenizers$
+syntax: regexp
+^dist$
