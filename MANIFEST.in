@@ -1,2 +1,3 @@
 include *.txt *.ini *.cfg *.rst
 recursive-include src *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.kajiki *.xml *.xsd
+include src/ets/data/*
