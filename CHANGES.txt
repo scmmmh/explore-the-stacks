@@ -3,6 +3,15 @@
 
 * *UPDATE*: Transition to Python 3, Kajiki, Spacy
 
+1.0.1
+-----
+
+* *BUGFIX*: Reverted the scripts back to using the DB session directly, rather
+  than using the transaction manager.
+* *BUGFIX*: Correctly handle the case where the shelf has no keywords
+* *BUGFIX*: Correctly handle the case where the search API cannot be accessed
+* *BUGFIX*: Make scripts work for NTLK 3
+
 1.0
 ---
 
