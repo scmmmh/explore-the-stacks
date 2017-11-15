@@ -1,3 +1,8 @@
+1.2
+---
+
+* *UPDATE*: Updated to ElasticSearch 6
+
 1.1.1
 -----
 

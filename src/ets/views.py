@@ -59,8 +59,7 @@ def shelf_group(request, shelf, prev, nxt):
             body = {'query': {'match': {'_all': request.params['q'].strip()}},
                     'filter': {'term': {'shelf_id_': request.matchdict['sid']}},
                     'size': shelves.count()}
-            matches = set([int(d['_id']) for d in es.search(index='ets',
-                                                            doc_type='shelf',
+            matches = set([int(d['_id']) for d in es.search(index='ets-shelf',
                                                             body=body)['hits']['hits']])
         except:
             matches = []
@@ -95,8 +94,7 @@ def book_shelf(request, shelf, prev, nxt):
     if 'q' in request.params and request.params['q'].strip():
         try:
             es = Elasticsearch()
-            matches = [int(d['_id']) for d in es.search(index='ets',
-                                                        doc_type='book',
+            matches = [int(d['_id']) for d in es.search(index='ets-book',
                                                         body={'query': {'match': {'_all': request.params['q'].strip()}},
                                                               'filter': {'term': {'shelf_id_': request.matchdict['sid']}},
                                                               'size': 200})['hits']['hits']]

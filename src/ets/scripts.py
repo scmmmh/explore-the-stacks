@@ -247,8 +247,7 @@ def index_data(args):
         if book.shelf_marks:
             body = {'shelf_id_': [sm.shelf.id for sm in book.shelf_marks]}
             body.update(book.attrs)
-            es.index(index='ets',
-                     doc_type='book',
+            es.index(index='ets-book',
                      body=body,
                      id=book.id)
             count = count + 1
@@ -257,8 +256,7 @@ def index_data(args):
     logger.info('%i books indexed' % (count))
     count = 0
     for shelf in dbsession.query(Shelf):
-        es.index(index='ets',
-                 doc_type='shelf',
+        es.index(index='ets-shelf',
                  body={'start': shelf.start,
                        'end': shelf.end,
                        'shelf_id_': shelf.parent_id,
@@ -281,7 +279,7 @@ def create_keywords(args):
         def __init__(self, query, dictionary):
             self.query = query
             self.dictionary = dictionary
-        
+
         def __iter__(self):
             for book in self.query:
                 words = [token.orth_ for title in book.attrs['title'] for token in nlp(title) if
@@ -289,7 +287,7 @@ def create_keywords(args):
                          len(token.orth_) > 1]
                 bow = self.dictionary.doc2bow(words)
                 yield bow
-    
+
     settings = get_appsettings(args.configuration)
     setup_logging(args.configuration)
     logger = logging.getLogger('explorethestacks')
