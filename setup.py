@@ -24,7 +24,7 @@ requires = ['pyramid',
             'asset']
 
 setup(name='ExploreTheStacks',
-      version='1.2',
+      version='1.2.1',
       description='Book browser using an archive stack exploring UI',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
