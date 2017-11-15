@@ -1,3 +1,8 @@
+1.2.1
+-----
+
+* *BUGFIX*: Fixed an issue with how the ES6 type migration was implemented
+
 1.2
 ---
 

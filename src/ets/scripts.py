@@ -248,6 +248,7 @@ def index_data(args):
             body = {'shelf_id_': [sm.shelf.id for sm in book.shelf_marks]}
             body.update(book.attrs)
             es.index(index='ets-book',
+                     doc_type='book',
                      body=body,
                      id=book.id)
             count = count + 1
@@ -257,6 +258,7 @@ def index_data(args):
     count = 0
     for shelf in dbsession.query(Shelf):
         es.index(index='ets-shelf',
+                 doc_type='shelf',
                  body={'start': shelf.start,
                        'end': shelf.end,
                        'shelf_id_': shelf.parent_id,
