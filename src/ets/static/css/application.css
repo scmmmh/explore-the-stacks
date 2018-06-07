@@ -12,6 +12,11 @@ header {
     margin-bottom: 0.5em;
 }
 
+div.wrapper {
+    max-width: 74rem;
+    margin: 0 auto;
+}
+
 header h1 {
     margin: 0 0 0.5em 0;
 }
@@ -72,6 +77,8 @@ header div.return a:hover {
 
 article {
     padding: 0 2em;
+    max-width: 74em;
+    margin: 0 auto;
 }
 
 article div.intra-shelf {
@@ -99,6 +106,7 @@ footer {
     padding-top: 0.5rem;
     border-top: 1px solid #ddd;
 }
+
 footer a {
     color: #a00;
     text-decoration: none;
@@ -110,10 +118,6 @@ footer a:hover {
  * Styles for the shelf-overview page
  */
 ol.shelves {
-    -moz-column-width: 18em;
-    -moz-column-gap: 0.5em;
-    -webkit-column-width: 18em;
-    -webkit-column-gap: 0.5em;
     column-width: 18em;
     column-gap: 0.5em;
     margin: 0;
@@ -161,7 +165,7 @@ ol.shelves li a:link {
     color: #dddddd;
 }
 
-ol.shelves li span.shelfmarks, ol.shelves li span.keywords {
+ol.shelves li span.shelfmarks{
     display: block;
     overflow: hidden;
     white-space: nowrap;
@@ -174,24 +178,34 @@ ol.shelves li span.shelfmarks {
 }
 
 ol.shelves li span.keywords {
+    display: block;
+    overflow: hidden;
     margin: 1em 0 0 0;
     font-size: 0.8em;
-    position: relative;
 }
 
-ol.shelves li span.keywords-scroll {
-    display: none;
-    position: absolute;
-    top: 0px;
+ol.shelves li span.keywords span.keywords-scroll {
+    display: block;
+    white-space: nowrap;
+    transform: translateX(0%);
 }
 
-ol.shelves li span.keywords-scroll {
-    background-color: #444;
+ol.shelves li:hover span.keywords span.keywords-scroll {
+    animation: keywordsScroll 20s linear infinite;
 }
 
-ol.shelves li.type-result span.keywords-scroll {
-    background-color: #a00;
+@keyframes keywordsScroll {
+    0% {
+        transform: translateX(0%);
+    }
+    50% {
+        transform: translateX(-110%);
+    }
+    100% {
+        transform: translateX(0%);
+    }
 }
+
 
 /**
  * Styles for the individual shelf page
@@ -227,6 +241,24 @@ ol.books li div.content {
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 10pt;
+}
+
+div.overlay-bg {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.5s, z-index 0.5s;
+    z-index: -1;
+}
+
+div.overlay-bg.is-visible {
+    display: block;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.6);
 }
 
 ol.books li div.overlay {
@@ -272,20 +304,17 @@ ol.books li a {
     text-decoration: none;
 }
 
-.ui-widget-overlay {
-    z-index: 1;
-}
-
 .book-overlay {
-    top: 0px;
-    left: 0px;
-    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: fixed;
     background-color: #ffffff;
     border: 2px solid #000000;
-    z-index: 2;
+    z-index: 1001;
 }
 
-.book-overlay a.prev,.book-overlay a.next {
+.book-overlay a.prev, .book-overlay a.next {
     position: absolute;
     padding: 0.1em 0.2em 0.2em 0.2em;
     text-decoration: none;
@@ -294,6 +323,16 @@ ol.books li a {
     font-size: 32pt;
     font-weight: bold;
     color: #000000;
+}
+.book-overlay a.prev {
+    left: 0;
+    top: 50%;
+    transform: translate(-100%, -50%);
+}
+.book-overlay a.next {
+    right: 0;
+    top: 50%;
+    transform: translate(100%, -50%);
 }
 
 .book-overlay a.prev.disabled,.book-overlay a.next.disabled {
@@ -333,6 +372,9 @@ ol.books li a {
 .book-overlay .pagenr {
     display: block;
     position: absolute;
+    right: -2px;
+    bottom: 0;
+    transform: translateY(100%);
     width: 150px;
     white-space: nowrap;
     background-color: #ffffff;
@@ -348,6 +390,9 @@ ol.books li a {
 .book-overlay .title {
     display: block;
     position: absolute;
+    left: -2px;
+    top: 0;
+    transform: translateY(-100%);
     width: 75%;
     white-space: nowrap;
     overflow: hidden;

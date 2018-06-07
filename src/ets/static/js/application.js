@@ -28,7 +28,7 @@
 		    	if(win.height() > 700 && win.width() > 750) {
 		    		image_size = 640;
 			    	component.data('flickr-sizes', ['Medium 640', 'Medium', 'Small 320', 'Small']);
-		    	} 
+		    	}
 	    		component.data('image-size', image_size);
 		    	var book = $('<div class="book-overlay size-' + image_size + '" style="display:none;">' +
 		    			'<a href="#" class="prev">&lang;</a>' +
@@ -47,7 +47,7 @@
 		    		component.illustrationBrowser('next');
 		    		return false;
 		    	});
-		    	var overlay = $('<div class="ui-widget-overlay" style="display:none;"></div>');
+		    	var overlay = $('<div class="overlay-bg"></div>');
 		    	overlay.on('click', function() {
 		    		component.illustrationBrowser('hide');
 		    	});
@@ -56,14 +56,15 @@
 			});
 		},
 		show: function() {
-			return this.each(function() {
+			return this.each(function() {'start', 'end', 'text'
 				var component = $(this);
 				var cache = component.data('cache');
 				var book = component.data('book');
-				component.data('overlay').show();
+				//component.data('overlay').show();
+				component.data('overlay').addClass('is-visible');
 				book.show();
 				book.find('ul.pages').scrollLeft(0);
-				book.position({
+				/*book.position({
 					my: 'center center',
 					at: 'center center',
 					of: $(window)
@@ -87,12 +88,12 @@
 					my: 'left bottom+2px',
 					at: 'left top',
 					of: book
-				});
+				});*/
 				var pages = book.children('ul.pages');
 				pages.empty();
 				var illustrations = cache[component.data('current_book_id')];
 				for(var idx in illustrations) {
-					var item = $('<li><a href="http://www.flickr.com/photos/britishlibrary/' + illustrations[idx].id + '" target="_blank"><img src="' + component.data('options').spinner + '"/></a></li>');
+					var item = $('<li><a href="http://www.flickr.com/photos/britishlibrary/' + illustrations[idx].id + '" target="_blank" rel="noopener"><img src="' + component.data('options').spinner + '"/></a></li>');
 					pages.append(item);
 				}
 				$(window).on('keyup.illustrationBrowser', function(ev) {
@@ -110,7 +111,8 @@
 			return this.each(function() {
 				var component = $(this);
 				component.data('book').hide();
-				component.data('overlay').hide();
+				//component.data('overlay').hide();
+				component.data('overlay').removeClass('is-visible');
 				$(window).off('keyup.illustrationBrowser');
 			});
 		},
@@ -185,7 +187,7 @@
 			});
 		}
 	};
-		
+
 	$.fn.illustrationBrowser = function(method) {
 	    if(methods[method]) {
 	   		return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
@@ -193,65 +195,6 @@
 	   		return methods.init.apply(this, arguments);
 	   	} else {
 	   		$.error('Method ' +  method + ' does not exist on jQuery.illustrationBrowser');
-	   	}
-	};
-}(jQuery));
-
-(function ($) {
-	/**
-	 * The textScroller scrolls the shelf keywords.
-	 */
-	var methods = {
-		init: function(options) {
-			return this.each(function() {
-				var item = $(this);
-				item.on('mouseover', function() {
-					item.textScroller('start');
-				});
-				item.on('mouseout', function() {
-					item.textScroller('stop');
-				});
-			});
-		},
-		start: function() {
-			return this.each(function() {
-				var item = $(this);
-				item.find('.keywords-scroll').css('display', 'block');
-				var width = item.find('.keywords-scroll').outerWidth(true) - item.find('.keywords').width();
-				item.find('.keywords-scroll').animate({
-					left: -width
-				}, {
-					duration: width * 30,
-					easing: 'linear',
-					done: function() {
-						item.data('scroll.timeout', setTimeout(function() {
-							item.find('.keywords-scroll').animate({
-								left: 0
-							}, {
-								duration: width * 30,
-								easing: 'linear'
-							});
-						}, 2000));
-					}
-				});
-			});
-		},
-		stop: function() {
-			return this.each(function() {
-				var item = $(this);
-				item.find('.keywords-scroll').stop().css('left', '0px').hide();
-				clearTimeout(item.data('scroll.timeout'));
-			});
-		}
-	};
-		
-	$.fn.textScroller = function(method) {
-	    if(methods[method]) {
-	   		return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
-	    } else if(typeof method === 'object' || !method) {
-	   		return methods.init.apply(this, arguments);
-	   	} else {
-	   		$.error('Method ' +  method + ' does not exist on jQuery.textScroller');
 	   	}
 	};
 }(jQuery));

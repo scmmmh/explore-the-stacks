@@ -97,6 +97,7 @@ def filter_books(args):
     filter_count = 0
     with transaction.manager:
         for book in dbsession.query(Book):
+            dbsession.add(book)
             if not book.illustrations:
                 dbsession.delete(book)
                 filter_count = filter_count + 1
@@ -241,13 +242,13 @@ def index_data(args):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     dbsession = DBSession()
-    es = Elasticsearch()
+    es = Elasticsearch(hosts=[host.strip() for host in settings['elasticsearch.hosts'].split(',')])
     count = 0
     for book in dbsession.query(Book):
         if book.shelf_marks:
             body = {'shelf_id_': [sm.shelf.id for sm in book.shelf_marks]}
             body.update(book.attrs)
-            es.index(index='ets-book',
+            es.index(index='explore-the-stacks-book',
                      doc_type='book',
                      body=body,
                      id=book.id)
@@ -257,7 +258,7 @@ def index_data(args):
     logger.info('%i books indexed' % (count))
     count = 0
     for shelf in dbsession.query(Shelf):
-        es.index(index='ets-shelf',
+        es.index(index='explore-the-stacks-shelf',
                  doc_type='shelf',
                  body={'start': shelf.start,
                        'end': shelf.end,
@@ -271,12 +272,12 @@ def index_data(args):
 
 
 def create_keywords(args):
-    from spacy.en import English
+    import spacy
     from gensim import corpora, models
     STOPWORDS = ['etc', 'new']
     for language in ['english', 'german', 'french', 'italian', 'spanish']:
         STOPWORDS.extend(resource_string('ets', 'data/%s' % language).decode('utf-8').split('\n'))
-    nlp = English()
+    nlp = spacy.load('en')
     class BookCorpus(object):
         def __init__(self, query, dictionary):
             self.query = query

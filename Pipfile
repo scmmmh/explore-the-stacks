@@ -1,0 +1,26 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyramid = "*"
+sqlalchemy = "*"
+pyramid-tm = "*"
+"zope.sqlalchemy" = "*"
+waitress = "*"
+decorator = "*"
+mimeparse = "*"
+formencode = "*"
+elasticsearch = "*"
+lxml = "*"
+kajiki = "*"
+asset = "*"
+"psycopg2" = "*"
+gensim = "*"
+spacy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3"

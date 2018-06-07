@@ -2,20 +2,20 @@
 # Explore The Stacks
 #
 # Copyright (C) 2013 Mark Hall
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 u"""
 .. moduleauthor:: Mark Hall <mark.hall@mail.room3b.eu>
 """
@@ -32,11 +32,9 @@ def main(global_config, **settings):
     """
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
-    session_factory = session_factory_from_settings(settings)
-    config = Configurator(settings=settings, session_factory = session_factory)
+    config = Configurator(settings=settings)
     config.include('kajiki.integration.pyramid')
     config.add_static_view('static', 'static', cache_max_age=3600)
-    views.init(config)
+    views.init(config, settings)
     config.scan()
     return config.make_wsgi_app()
-

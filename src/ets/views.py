@@ -16,16 +16,19 @@ from sqlalchemy import and_
 
 from ets.models import (DBSession, Book, ShelfMark, Shelf)
 
+es = None
 
-def init(config):
+def init(config, settings):
     '''Initialise the routes handled by the views.
 
     The following roots are defined:
     * ``root`` -- ``/``
     * ``shelf`` -- ``/shelf/{sid}``
     '''
+    global es
     config.add_route('root', '/')
     config.add_route('shelf', '/shelf/{sid}')
+    es = Elasticsearch(hosts=[host.strip() for host in settings['elasticsearch.hosts'].split(',')])
 
 
 @view_config(route_name='root')
@@ -55,11 +58,11 @@ def shelf_group(request, shelf, prev, nxt):
         shelves = shelves.filter(Shelf.parent_id==None).order_by(Shelf.order)
     if 'q' in request.params and request.params['q'].strip():
         try:
-            es = Elasticsearch()
-            body = {'query': {'match': {'_all': request.params['q'].strip()}},
-                    'filter': {'term': {'shelf_id_': request.matchdict['sid']}},
+            body = {'query': {'bool': {'must': {'multi_match': {'query': request.params['q'].strip(),
+                                                                'fields': ['start', 'end', 'text']}},
+                                       'filter': {'term': {'shelf_id_': request.matchdict['sid']}}}},
                     'size': shelves.count()}
-            matches = set([int(d['_id']) for d in es.search(index='ets-shelf',
+            matches = set([int(d['_id']) for d in es.search(index='explore-the-stacks-shelf',
                                                             doc_type='shelf',
                                                             body=body)['hits']['hits']])
         except:
@@ -94,12 +97,15 @@ def book_shelf(request, shelf, prev, nxt):
     '''
     if 'q' in request.params and request.params['q'].strip():
         try:
-            es = Elasticsearch()
-            matches = [int(d['_id']) for d in es.search(index='ets-book',
+            body = {'query': {'bool': {'must': {'multi_match': {'query': request.params['q'].strip(),
+                                                                'fields': ['title', 'datefield', 'shelfmarks',
+                                                                           'publisher', 'edition', 'authors',
+                                                                           'place', 'issuance']}},
+                                       'filter': {'term': {'shelf_id_': request.matchdict['sid']}}}},
+                    'size': 200}
+            matches = [int(d['_id']) for d in es.search(index='explore-the-stacks-book',
                                                         doc_type='book',
-                                                        body={'query': {'match': {'_all': request.params['q'].strip()}},
-                                                              'filter': {'term': {'shelf_id_': request.matchdict['sid']}},
-                                                              'size': 200})['hits']['hits']]
+                                                        body=body)['hits']['hits']]
         except:
             matches = []
     else:

@@ -7,19 +7,20 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title><py:if test="defined('shelves')">${shelf_title(shelf)}</py:if><py:else>Shelfmarks: ${shelf.start} - ${shelf.end}</py:else></title>
-    <link rel="stylesheet" href="${request.static_url('ets:static/css/jquery-ui-1.10.3.custom.min.css')}"/>
     <link rel="stylesheet" href="${request.static_url('ets:static/css/application.css')}"/>
   </head>
   <body>
     <header>
-      <div py:if="shelf.parent" class="return"><a href="${request.route_url('shelf', sid=shelf.parent.id, _query=request.params)}">&#x027F5; Back to ${shelf_title(shelf.parent)}</a></div>
-      <h1><py:if test="defined('shelves')">${shelf_title(shelf)}</py:if><py:else>Shelfmarks: ${shelf.start} - ${shelf.end}</py:else>
-        <small>${shelf.keywords}</small>
-      </h1>
-      <form action="" id="search">
-        <input type="search" name="q" value="${request.params['q'] if 'q' in request.params else ''}" placeholder="${', '.join(keywords)}"/><!-- 
-        --><input type="submit" value="Look for"/>
-      </form>
+      <div class="wrapper">
+        <div py:if="shelf.parent" class="return"><a href="${request.route_url('shelf', sid=shelf.parent.id, _query=request.params)}">&#x027F5; Back to ${shelf_title(shelf.parent)}</a></div>
+        <h1><py:if test="defined('shelves')">${shelf_title(shelf)}</py:if><py:else>Shelfmarks: ${shelf.start} - ${shelf.end}</py:else>
+          <small>${shelf.keywords}</small>
+        </h1>
+        <form action="" id="search">
+          <input type="search" name="q" value="${request.params['q'] if 'q' in request.params else ''}" placeholder="${', '.join(keywords)}"/><!--
+          --><input type="submit" value="Look for"/>
+        </form>
+      </div>
     </header>
     <article>
       <div class="intra-shelf">
@@ -34,7 +35,7 @@
           <li py:for="child in shelves" class="type-${'result' if child.id in matches else 'other'}" title="${shelf_title(child)}">
             <a href="${request.route_url('shelf', sid=child.id, _query=request.params)}">
               <span class="shelfmarks">${shelf_title(child)}</span>
-              <span class="keywords">${child.keywords}<span class="keywords-scroll">${child.keywords}</span></span>
+              <span class="keywords"><span class="keywords-scroll">${child.keywords}</span></span>
             </a>
           </li>
         </ol>
@@ -55,10 +56,11 @@
       </div>
     </article>
     <footer>
-      Powered by <a href="https://bitbucket.org/mhall/explore-the-stacks">Explore the Stacks</a> version ${asset.version('ExploreTheStacks')}.
+      <div class="wrapper">
+        Powered by <a href="https://bitbucket.org/mhall/explore-the-stacks">Explore the Stacks</a> version ${asset.version('ExploreTheStacks')}.
+      </div>
     </footer>
-    <script src="${request.static_url('ets:static/js/jquery-2.0.3.min.js')}"> </script>
-    <script src="${request.static_url('ets:static/js/jquery-ui-1.10.3.custom.min.js')}"> </script>
+    <script src="${request.static_url('ets:static/js/jquery-3.3.1.min.js')}"> </script>
     <script src="${request.static_url('ets:static/js/application.js')}"> </script>
     <script>
     $('ol.books').illustrationBrowser({
@@ -69,7 +71,7 @@
         },
         spinner: "${request.static_url('ets:static/img/spinner.gif')}"
     });
-    $('ol.shelves li').textScroller();
+    //$('ol.shelves li').textScroller();
     </script>
   </body>
 </html>

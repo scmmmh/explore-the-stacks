@@ -7,7 +7,6 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = ['pyramid',
-            'pyramid_debugtoolbar',
             'sqlalchemy',
             'pyramid_tm',
             'zope.sqlalchemy',
@@ -24,7 +23,7 @@ requires = ['pyramid',
             'asset']
 
 setup(name='ExploreTheStacks',
-      version='1.2.1',
+      version='1.3.0',
       description='Book browser using an archive stack exploring UI',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
