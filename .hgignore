@@ -1,17 +1,5 @@
-
 syntax: regexp
 ^src/ExploreTheStacks\.egg-info$
-syntax: regexp
-^\.project$
-syntax: regexp
-^\.pydevproject$
-syntax: regexp
-^\.settings$
-syntax: regexp
 ^development\.ini$
-syntax: regexp
-^corpora$
-syntax: regexp
-^tokenizers$
-syntax: regexp
+^corpus\..*$
 ^dist$
